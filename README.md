@@ -49,5 +49,25 @@ States (eg. traffic lights example). Look at the time table.
 - If it's greater than departure time and less than arrival time for the next stop, we know it's in transition.
 
 
+### Requirements
 
+#### Net:
+
+- Should only have one connection between two stops
+- It can't have a connection to stop that doesn't exists
+- (Stop without connections)
+- StopId must be unique
+
+
+
+#### Time Tables
+
+- TramId must be unique
+- No more trains at a stop than the capacity of that specific stop
+- No more trains at a connection than the capacity of the specific connection
+- No entry in a plan that doesn't exist in the net
+- Departure time - arrival time must equal or larger minimum waiting time for the corresponding stop
+- The arrival time for the next stop - departure time of the current stop must be equal or greater than minimum driving time
+- We can't have two trains in the same connection that drives in different direction
+- We can't have that a tram skips a stop. For example, if tram goes from A --> C, and it has to go through B, it has to stop there.
 

@@ -2,31 +2,81 @@ NET
 scheme TIMETABLE = extend NET with
 class
   type 
-    TimeTable = ..., -- time tables
-    ...,
-    TramId = Text -- tram names
+    TimeTable = Tramid -m-> Plan, -- time tables
+    Plan = (StopId >< Time >< Time)-list,
+    TramId = Text, -- tram names
+    Connection = StopId >< StopId >< Capacity >< DrivingTime,
+    State = StopId >< StopId    
 
     value /* generators */
       -- the empty timetable
       empty: TimeTable,
-
+      emptyPlan: Plan = <..>,
+      
       -- add to a time table an empty plan for a new tram
-      addTram: TramId >< TimeTable -> TimeTable,
+      addTram: TramId >< TimeTable -> TimeTable
+      addTram(ti, tt) is tt !! [ti +> emptyPlan],
+
 
       -- add a stop with arrival time and departure time to the plan for a given tram
-      addStop: TramId >< StopId >< Time >< Time >< TimeTable -> TimeTable
+      addStop: TramId >< StopId >< Time >< Time >< TimeTable ->TimeTable
+      addStop(ti, si, t1, t2, tt) is tt(ti) union (si, t1, t2)
+      pre isIn(ti, tt)
 
   value /* observers */
      -- check whether a tram with a given name exists in a given time table
-     isIn : TramId >< TimeTable -> Bool,
-
+     isIn: TramId >< TimeTable -> Bool
+     isIn(ti, tt) is ti isin dom(tt),
+     
+     isIn: StopId >< Plan -> Bool
+     isIn(si, p) is let
+			(cs, at, dt) = if p ~= emptyPlan then hd(p) end
+	            in
+			if p = emptyPlan then
+			   false
+			elsif si = cs then
+			   true
+			else
+			   isIn(si, tl(p))
+			end
+	            end
+			   
      -- you can add more observers here
-     ...
+     
  
   value /* predicates to check time tables */   
-     isWellformed : TimeTable >< Net -> Bool
-     isWellformed(t, n) is ...,
+     
 
-     ...
+     noEntryInPlan: TimeTable >< Net -> Bool
+     noEntryInPlan(tt, n) is ~(all p : Plan :- p isin rng(tt) =>(exists si :
+     StopId :- isIn(si, p) /\ ~(isIn(si, n)))),
+
+     currentState: TramId >< TimeTable >< Time -> State
+     currentState(ti, tt, t) is 
+				let
+				   (si, at, dt) = hd(tt(ti))
+				in  
+				   recCurrentState(tt(ti), si, t)
+				end,
+     
+
+     recCurrentState: Plan >< StopId >< Time -> State
+     recCurrentState(p, sio,  t) is 
+			  let 
+			     (si, at, dt) = hd(p)
+			  in
+			     if t > dt then
+				recCurrentState(tl(p), si, t)
+			     elsif t >= at then
+			        (si, si)
+			     else
+			        (sio, si)
+			     end
+			  end,
+     
+     
+			        
+     isWellformed : TimeTable >< Net -> Bool
+     isWellformed(t, n) is ...,			 
      
 end  

@@ -2,11 +2,18 @@ NET
 scheme TIMETABLE = extend NET with
 class
   type 
-    TimeTable = Tramid -m-> Plan, -- time tables
-    Plan = (StopId >< Time >< Time)-list,
+    TimeTable = TramId -m-> Plan, -- time tables
+    Entry::
+	si: StopId
+	at: Time
+	dt: Time,
+    Plan = (Entry)-list,
     TramId = Text, -- tram names
-    Connection = StopId >< StopId >< Capacity >< DrivingTime,
-    State = StopId >< StopId    
+    Connection::
+	s1: StopId
+	s2: StopId
+	c: Capacity
+	t: DrivingTime
 
     value /* generators */
       -- the empty timetable
@@ -19,8 +26,8 @@ class
 
 
       -- add a stop with arrival time and departure time to the plan for a given tram
-      addStop: TramId >< StopId >< Time >< Time >< TimeTable ->TimeTable
-      addStop(ti, si, t1, t2, tt) is tt(ti) union (si, t1, t2)
+      addStop: TramId >< StopId >< Time >< Time >< TimeTable -> TimeTable
+      addStop(ti, si, t1, t2, tt) is tt !! [ti +> tt(ti) ^ <.mk_Entry(si, t1, t2).>]
       pre isIn(ti, tt)
 
   value /* observers */
@@ -29,17 +36,14 @@ class
      isIn(ti, tt) is ti isin dom(tt),
      
      isIn: StopId >< Plan -> Bool
-     isIn(si, p) is let
-			(cs, at, dt) = if p ~= emptyPlan then hd(p) end
-	            in
-			if p = emptyPlan then
-			   false
-			elsif si = cs then
-			   true
-			else
-			   isIn(si, tl(p))
-			end
-	            end
+     isIn(si, p) is
+		   if p = emptyPlan then
+		      false
+		   elsif si = si(hd(p)) then
+		      true
+		   else
+		      isIn(si, tl(p))
+		   end
 			   
      -- you can add more observers here
      
@@ -51,32 +55,119 @@ class
      noEntryInPlan(tt, n) is ~(all p : Plan :- p isin rng(tt) =>(exists si :
      StopId :- isIn(si, p) /\ ~(isIn(si, n)))),
 
-     currentState: TramId >< TimeTable >< Time -> State
-     currentState(ti, tt, t) is 
-				let
-				   (si, at, dt) = hd(tt(ti))
-				in  
-				   recCurrentState(tt(ti), si, t)
-				end,
-     
+     correctTimingAtStop: TimeTable >< Net -> Bool
+     correctTimingAtStop(tt, n) is (all p : Plan :- p isin rng(tt) =>
+			     ~(exists e: Entry :- e isin p /\ dt(e) - at(e) <
+			     minWaitingTime(si(e), n))),
 
-     recCurrentState: Plan >< StopId >< Time -> State
+     currentState: TramId >< TimeTable >< Time -> StopId >< StopId
+     currentState(ti, tt, t) is recCurrentState(tt(ti), si(hd(tt(ti))), t),
+
+     recCurrentState: Plan >< StopId >< Time -> StopId >< StopId
      recCurrentState(p, sio,  t) is 
 			  let 
-			     (si, at, dt) = hd(p)
+			     e = hd(p)
 			  in
-			     if t > dt then
-				recCurrentState(tl(p), si, t)
-			     elsif t >= at then
-			        (si, si)
+			     if t > dt(e) then
+				recCurrentState(tl(p), si(e), t)
+			     elsif t >= at(e) then
+			        (si(e), si(e))
 			     else
-			        (sio, si)
+			        (sio, si(e))
 			     end
 			  end,
      
+     capacityAtStop: TimeTable >< Net -> Bool
+     capacityAtStop(tt, n) is ~(exists si : StopId :- isIn(si, n) => (exists
+     t : Time :- capacity(si, n) < card({ti | ti : TramId :-
+     currentState(ti, tt, t) = (si, si)}))),
+
+     capacityAtConnection: TimeTable >< Net -> Bool
+     capacityAtConnection(tt, n) is ~(exists c : Connection :-
+						areDirectlyConnected(s1(c), s2(c)) => 
+						(exists t: Time :-
+						capacity(c, n) <
+						tramsInDirection(tt,
+						t, s1(c), s2(c)) +
+						tramsInDirection(tt,
+						t, s2(c), s1(c)))),
+					      
+					 ------- SHORT RECORD
+					 -- CONVERSION IN PROGRESS,
+					 -- CURRENTLY AT THIS POINT --------
+
+     overlappingDirection: TimeTable >< Net -> Bool
+     overlappingDirection(tt, n) is ~(exists c : Connection :-
+					   let
+						(s1, s2, at, dt) = c
+					   in
+						areDirectlyConnected(s1, s2, n) =>
+						(exists t : Time :-
+						tramsInDirection(tt,
+						t, s1, s2) > 0 /\
+						tramsInDirection(tt,
+						t, s2, s1) > 0)
+					   end),
+    
+     tramsInDirection: TimeTable >< Time >< StopId >< StopId -> Nat
+     tramsInDirection(tt, t, s1, s2) is card({ti | ti : TramId :-
+						currentState(ti, tt,t)
+						= (s1, s2)}),
      
-			        
+     noStopSkip: TimeTable >< Net -> Bool
+     noStopSkip(tt, n) is ~(exists p : Plan :- p isin tt =>
+				   let
+					(si, at, dt) = hd(p)
+				   in
+					recStopSkip(si, tl(p), n)
+				   end),
+     
+     recStopSkip: StopId >< Plan >< Net -> Bool
+     recStopSkip(s1, p, n) is let
+				 (s2, at, dt) = if p ~= emptyPlan then
+				 hd(p) end
+			      in
+			         if p = emptyPlan then
+				    True
+				 elsif ~areDirectlyConnected(s1, s2, n) then
+				    False
+				 else
+				    recStopSkip(s2, tl(p), n)
+				 end
+			       end,
+			       
+     CorrectDrivingTime: TimeTable >< Net -> Bool
+     CorrectDrivingTime(tt, n) is ~(exists p : Plan :- p isin tt =>
+				  let
+				     (si, at, dt) = hd(p)
+				  in
+				     recCorrectDrivingTime(si, dt,
+				     tl(p), n)
+				  end),
+     
+     recCorrectDrivingTime: StopId >< Time >< Plan >< Net -> Bool
+     recCorrectDrivingTime(s1, t, p, n) is 
+				     let
+					 (s2, at, dt) = if p ~=
+					 emptyPlan then  hd(p) end
+				     in
+					if p = emptyPlan then
+					   True
+				        elsif at - t < minDrivingTime(s1, s2, n) then
+					   False
+				        else
+					   recCorrectDrivingTime(s2, dt, tl(p), n)
+				        end
+			             end,   
+
      isWellformed : TimeTable >< Net -> Bool
-     isWellformed(t, n) is ...,			 
+     isWellformed(tt, n) is 
+		      noEntryInPlan(tt, n) /\
+		      correctTimingAtStop(tt, n) /\ 
+		      capacityAtStop(tt, n) /\
+		      capacityAtConnection(tt, n) /\ 
+		      overlappingDirection(tt, n) /\
+		      noStopSkip(tt, n) /\ 
+		      correctDrivingTime(tt, n)		 
      
 end  

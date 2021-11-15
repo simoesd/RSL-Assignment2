@@ -1,0 +1,18 @@
+NET
+scheme NETTEST =
+extend NET with 
+class
+  value 
+    s1 : Stop = ("a", 1, 1),
+    s2 : Stop = ("b", 1, 1),   
+    s3 : Stop = ("a", 2, 1)
+  test_case
+    /* inserts stop in empty net */
+    [t001] insertStop("a", 1, 1, ({}, {})) = ({s1}, {}),
+    /* inserts same name, with different times */
+    [t002] insertStop("a", 1, 2, ({s1}, {})) = ({s1}, {}),
+    /* inserts new stop  */
+    [t003] insertStop("b", 1, 1, ({s1}, {})) = ({s1, s2}, {})
+
+
+    end

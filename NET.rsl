@@ -18,7 +18,7 @@ class
    Time = Nat 
 
   value /* generators */
-    empty :  Net,
+    empty :  Net = ({}, {}),
 
     -- insert a stop with a given name, capacity and minimum waiting time
     insertStop : StopId >< Capacity >< WaitingTime >< Net -> Net

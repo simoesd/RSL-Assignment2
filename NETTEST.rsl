@@ -1,20 +1,16 @@
-Design
-
-scheme NETTTEST =
+NET
+scheme NETTEST =
 extend NET with 
 class
   value 
-    s1 = {"a", 1, 1}
-    s2 = {"b", 1, 1}
-    s3 = {"a", 2, 2}
-    c1 = {s1, s2, 3, 3}
-    
-    
-    stops = {s1, s2, s3}
-    connections = {c1}
-    nets = (stops, connections)
-  test_case 
-    /*Plan function where Families is a single family with multiple members*/
+    s1 : Stop = ("a", 1, 1),
+    s2 : Stop = ("b", 1, 1),   
+    s3 : Stop = ("a", 2, 1)
+  test_case
+    /* inserts stop in empty net */
+    [t001] insertStop("a", 1, 1, ({}, {})) = ({s1}, {}),
+    /* inserts same name station, with different times */
+    [t002] insertStop("a", 1, 2, ({s1}, {})) = ({s1}, {})
 
- end
- 
+
+    end

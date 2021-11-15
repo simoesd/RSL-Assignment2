@@ -1,1 +1,1 @@
-(setq rsl-overlay-poss nil)
+(setq rsl-overlay-poss (list (list (rsl-lc-to-pos 46 22) (rsl-lc-to-pos 47 8)) (list (rsl-lc-to-pos 45 46) (rsl-lc-to-pos 47 8)) (list (rsl-lc-to-pos 48 10) (rsl-lc-to-pos 49 5)) (list (rsl-lc-to-pos 47 10) (rsl-lc-to-pos 48 8)) (list (rsl-lc-to-pos 44 24) (rsl-lc-to-pos 45 5)) (list (rsl-lc-to-pos 44 5) (rsl-lc-to-pos 52 7)) (list (rsl-lc-to-pos 64 43) (rsl-lc-to-pos 65 5)) (list (rsl-lc-to-pos 62 5) (rsl-lc-to-pos 65 6)) (list (rsl-lc-to-pos 70 86) (rsl-lc-to-pos 70 88)) (list (rsl-lc-to-pos 73 65) (rsl-lc-to-pos 74 9)) ))

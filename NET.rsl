@@ -2,7 +2,15 @@ scheme NET =
 class
   type 
    Net = Stop-set >< Connection-set,
-   Stop = StopId >< Capacity >< WaitingTime,
+  --  Stop = StopId >< Capacity >< WaitingTime,
+
+
+   Stop ::
+    sId: StopId
+    c: Capacity
+    wt: WaitingTime,
+
+
    /* Connection = StopId >< StopId >< Capacity >< DrivingTime, */
 
    Connection ::
@@ -23,14 +31,14 @@ class
     -- insert a stop with a given name, capacity and minimum waiting time
     insertStop : StopId >< Capacity >< WaitingTime >< Net -> Net
     insertStop(id, c, wt, (stops, connections)) is
-      if stops = {} then (stops union {(id, c, wt)}, connections)
-      elsif id isin {stopId | (stopId, sc, sw): Stop :- (stopId, sc, sw) isin stops} then (stops, connections)
-      else (stops union {(id, c, wt)}, connections)
+      if stops = {} then (stops union {mk_Stop(id, c, wt)}, connections)
+      elsif isIn(id, (stops, connections)) then (stops, connections)
+      else (stops union  {mk_Stop(id, c, wt)}, connections)
       end,
 
 
-   -- add a connection between given stops, 
-   -- with a given capacity and a given minimum driving time 
+  --  add a connection between given stops, 
+  --  with a given capacity and a given minimum driving time 
    addConnection : StopId >< StopId >< Capacity >< DrivingTime >< Net -> Net 
    addConnection(id1, id2, c, dt, (stops, connections)) is
     if stops = {} then (stops, connections)
@@ -41,40 +49,46 @@ class
     end
 
     
-    
-
- value /* observers */
+  value /* observers */
    -- check whether a stop is in a network     
-   isIn : StopId >< Net -> Bool
-   isIn(stopId, (stops, connections)) is 
-        stopId isin {sId | (sId, sc, sw): Stop :- (sId, sc, sw) isin stops},
+    isIn : StopId >< Net -> Bool
+    isIn(stopId, (stops, connections)) is 
+      (exists s : Stop :- s isin stops /\ (sId(s) = stopId)),
 
 
    -- check whether two stops are directly connected in a network        
-   areDirectlyConnected : StopId >< StopId >< Net -> Bool
-   areDirectlyConnected(id1, id2, (stops, connections)) is 
+    areDirectlyConnected : StopId >< StopId >< Net -> Bool
+    areDirectlyConnected(id1, id2, (stops, connections)) is 
     (
     exists c : Connection :- 
-       id1 = id1(c) /\ id2 = id2(c) /\ c isin connections
-    )
+    c isin connections /\ id1 = id1(c) /\ id2 = id2(c)
+    ),
 
- /* 
-   -- get the capacity of a stop 
-   capacity : StopId >< Net -~-> Capacity,
+--    -- get the capacity of a stop 
+    capacity : StopId >< Net -~-> Capacity
+    capacity(stopId, (stops, connections)) is 
+    if isIn(stopId, (stops, connections)) then c(stopsRecursive(stopId, stops)) else 0 end,
+    
+    --  recursive stop traversal method
+    stopsRecursive : StopId >< Stop-set -> Stop
+    stopsRecursive(stopId, stops) is if sId(hd(stops)) ~= stopId then stopsRecursive(stopId, stops \ {hd(stops)}) else hd(stops) end,
+    
 
    -- get the minimum waiting time of a stop 
-   minWaitingTime : StopId >< Net -~-> WaitingTime,
+   minWaitingTime : StopId >< Net -~-> WaitingTime
+   minWaitingTime(stopId, (stops, connections)) is  if isIn(stopId, (stops, connections)) then wt(stopsRecursive(stopId, stops)) else 0 end
+   
 
 
-   -- get the capacity for a connection between two connected stops
-   capacity : StopId >< StopId >< Net -~-> Capacity,
+--    -- get the capacity for a connection between two connected stops
+--    capacity : StopId >< StopId >< Net -~-> Capacity,
 
-   -- get minimum driving time between two connected stops        
-   minDrivingTime : StopId >< StopId >< Net -~-> DrivingTime
+--    -- get minimum driving time between two connected stops        
+--    minDrivingTime : StopId >< StopId >< Net -~-> DrivingTime
 
- value /* predicates to check nets */
-   isWellformed : Net -> Bool
-   isWellformed(n) is ...
+--  value /* predicates to check nets */
+--    isWellformed : Net -> Bool
+--    isWellformed(n) is ...
 
-   */
+--    */
 end  

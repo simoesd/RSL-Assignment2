@@ -3,16 +3,28 @@ scheme NETTEST =
 extend NET with 
 class
   value 
-    s1 : Stop = ("a", 1, 1),
-    s2 : Stop = ("b", 1, 1),   
-    s3 : Stop = ("a", 2, 1)
+    s1 : Stop = mk_Stop("a", 1, 1),
+    s2 : Stop = mk_Stop("b", 1, 1),   
+    s3 : Stop = mk_Stop("a", 2, 1)
   test_case
     /* inserts stop in empty net */
     [t001] insertStop("a", 1, 1, ({}, {})) = ({s1}, {}),
     /* inserts same name, with different times */
     [t002] insertStop("a", 1, 2, ({s1}, {})) = ({s1}, {}),
     /* inserts new stop  */
-    [t003] insertStop("b", 1, 1, ({s1}, {})) = ({s1, s2}, {})
+    [t003] insertStop("b", 1, 1, ({s1}, {})) = ({s1, s2}, {}),
+
+
+    [t01] capacity("b", ({s1, s2}, {})) = 1
+
+    -- /* isin empty network  */
+    -- [t101] isIn(s1, ({}, {})) = false,
+    -- /* isin different net stop  */
+    -- [t102] isIn(s1, ({s2}, {})) = false,
+    -- /* isin different times  */
+    -- [t103] isIn(s1, ({s3}, {})) = false,
+    -- /* isin valid   */
+    -- [t104] isIn(s1, ({s1}, {})) = false
 
 
     end

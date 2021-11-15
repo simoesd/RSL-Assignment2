@@ -1,0 +1,20 @@
+Design
+
+scheme NETTTEST =
+extend NET with 
+class
+  value 
+    s1 = {"a", 1, 1}
+    s2 = {"b", 1, 1}
+    s3 = {"a", 2, 2}
+    c1 = {s1, s2, 3, 3}
+    
+    
+    stops = {s1, s2, s3}
+    connections = {c1}
+    nets = (stops, connections)
+  test_case 
+    /*Plan function where Families is a single family with multiple members*/
+
+ end
+ 

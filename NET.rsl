@@ -1,43 +1,52 @@
 scheme NET =
 class
   type 
-   Net = ..., -- tram nets
-   StopId = Text,  -- names of stops
-   Capacity = Nat, -- capacities
-   WaitingTime = Time, -- minimum waiting times 
-   DrivingTime = Time, -- minimum driving times 
-   Time = Nat -- times in number of minutes
+   Net = Stop-set >< Connection-set,
+   Stop = StopId >< Capacity >< WaitingTime,
+   Connection = Stop >< Stop >< Capacity >< DrivingTime,
+   StopId = Text,     
+   Capacity = Nat,   
+   WaitingTime = Time,  
+   DrivingTime = Time, 
+   Time = Nat 
 
   value /* generators */
-    empty :  Net,  -- the empty net
+    empty :  Net,
 
     -- insert a stop with a given name, capacity and minimum waiting time
-    insertStop : StopId >< Capacity >< WaitingTime >< Net -> Net,
+    insertStop : StopId >< Capacity >< WaitingTime >< Net -> Net
+    insertStop(id, c, wt, (stops, connections)) is
+      if stops = {} then (stops union {(id, c, wt)}, connections)
+      elsif id isin {stopId | (stopId, sc, sw): Stop :- (stopId, sc, sw) isin stops} then (stops, connections)
+      else (stops union {(id, c, wt)}, connections)
+      end
 
-    -- add a connection between given stops, 
-    -- with a given capacity and a given minimum driving time 
-    addConnection : StopId >< StopId >< Capacity >< DrivingTime >< Net -> Net 
-   
-  value /* observers */
-    -- check whether a stop is in a network     
-    isIn : StopId >< Net -> Bool,
- 
-    -- get the capacity of a stop 
-    capacity : StopId >< Net -~-> Capacity,
+/*   -- add a connection between given stops, 
+   -- with a given capacity and a given minimum driving time 
+   addConnection : StopId >< StopId >< Capacity >< DrivingTime >< Net -> Net 
+  
+ value /* observers */
+   -- check whether a stop is in a network     
+   isIn : StopId >< Net -> Bool,
 
-    -- get the minimum waiting time of a stop 
-    minWaitingTime : StopId >< Net -~-> WaitingTime,
+   -- get the capacity of a stop 
+   capacity : StopId >< Net -~-> Capacity,
 
-    -- check whether two stops are directly connected in a network        
-    areDirectlyConnected : StopId >< StopId >< Net -> Bool,
+   -- get the minimum waiting time of a stop 
+   minWaitingTime : StopId >< Net -~-> WaitingTime,
 
-    -- get the capacity for a connection between two connected stops
-    capacity : StopId >< StopId >< Net -~-> Capacity,
+   -- check whether two stops are directly connected in a network        
+   areDirectlyConnected : StopId >< StopId >< Net -> Bool,
 
-    -- get minimum driving time between two connected stops        
-    minDrivingTime : StopId >< StopId >< Net -~-> DrivingTime
- 
-  value /* predicates to check nets */
-    isWellformed : Net -> Bool
-    isWellformed(n) is ...
+   -- get the capacity for a connection between two connected stops
+   capacity : StopId >< StopId >< Net -~-> Capacity,
+
+   -- get minimum driving time between two connected stops        
+   minDrivingTime : StopId >< StopId >< Net -~-> DrivingTime
+
+ value /* predicates to check nets */
+   isWellformed : Net -> Bool
+   isWellformed(n) is ...
+
+   */
 end  

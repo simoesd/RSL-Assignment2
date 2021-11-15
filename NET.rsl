@@ -66,8 +66,7 @@ class
 
 --    -- get the capacity of a stop 
     capacity : StopId >< Net -~-> Capacity
-    capacity(stopId, (stops, connections)) is 
-    if isIn(stopId, (stops, connections)) then c(stopsRecursive(stopId, stops)) else 0 end,
+    capacity(stopId, (stops, connections)) is if isIn(stopId, (stops, connections)) then c(stopsRecursive(stopId, stops)) else 0 end,
     
     --  recursive stop traversal method
     stopsRecursive : StopId >< Stop-set -> Stop
@@ -76,15 +75,25 @@ class
 
    -- get the minimum waiting time of a stop 
    minWaitingTime : StopId >< Net -~-> WaitingTime
-   minWaitingTime(stopId, (stops, connections)) is  if isIn(stopId, (stops, connections)) then wt(stopsRecursive(stopId, stops)) else 0 end
+   minWaitingTime(stopId, (stops, connections)) is if isIn(stopId, (stops, connections)) then wt(stopsRecursive(stopId, stops)) else 0 end,
    
+    --  recursive stop traversal method
+    stopsConnRecursive : StopId >< StopId >< Connection-set -> Connection
+    stopsConnRecursive(sId1, sId2, stops) is if (id1(hd(stops)) = sId1 /\ id2(hd(stops)) = sId2) \/ (id1(hd(stops)) = sId2 /\ id2(hd(stops)) = sId1) 
+    then stopsConnRecursive(sId1, sId2, stops \ {hd(stops)}) else hd(stops) end,
+
+    isInConn : StopId >< StopId >< Net -> Bool
+    isInConn(sId1, sId2, (stops, connections)) is 
+      (exists c : Connection :- c isin connections /\ (((id1(c) = sId1) /\ id2(c) = sId2) \/ ((id1(c) = sId2) /\ id2(c) = sId1))),
 
 
---    -- get the capacity for a connection between two connected stops
---    capacity : StopId >< StopId >< Net -~-> Capacity,
+    capacity : StopId >< StopId >< Net -~-> Capacity
+    capacity(sId1, sId2, (stops, connections)) is if isInConn(sId1, sId2, (stops, connections)) then c(stopsConnRecursive(sId1, sId2, connections)) else 0 end,
+
 
 --    -- get minimum driving time between two connected stops        
---    minDrivingTime : StopId >< StopId >< Net -~-> DrivingTime
+   minDrivingTime : StopId >< StopId >< Net -~-> DrivingTime
+   minDrivingTime(sId1, sId2, (stops, connections)) is if isInConn(sId1, sId2, (stops, connections)) then dt(stopsConnRecursive(sId1, sId2, connections)) else 0 end
 
 --  value /* predicates to check nets */
 --    isWellformed : Net -> Bool

@@ -2,7 +2,7 @@ NET
 scheme TIMETABLE = extend NET with
 class
   type 
-    TimeTable = Tramid -m-> Plan, -- time tables
+    TimeTable = TramId -m-> Plan, -- time tables
     Plan = (StopId >< Time >< Time)-list,
     TramId = Text, -- tram names
     Connection = StopId >< StopId >< Capacity >< DrivingTime,
@@ -51,6 +51,12 @@ class
      noEntryInPlan(tt, n) is ~(all p : Plan :- p isin rng(tt) =>(exists si :
      StopId :- isIn(si, p) /\ ~(isIn(si, n)))),
 
+     correctTimingAtStop: TimeTable >< Net -> Bool
+     correctTimingAtStop(tt, n) is (all p : Plan :- p isin rng(tt) =>
+			     ~(exists (si, at, dt): StopId >< Time ><
+			     Time :- (si, at, dt) isin p /\ dt - at <
+			     minWaitingTime(si, n))),
+
      currentState: TramId >< TimeTable >< Time -> State
      currentState(ti, tt, t) is 
 				let
@@ -58,7 +64,6 @@ class
 				in  
 				   recCurrentState(tt(ti), si, t)
 				end,
-     
 
      recCurrentState: Plan >< StopId >< Time -> State
      recCurrentState(p, sio,  t) is 
@@ -74,9 +79,97 @@ class
 			     end
 			  end,
      
+     capacityAtStop: TimeTable >< Net -> Bool
+     capacityAtStop(tt, n) is ~(exists si : StopId :- isIn(si, n) => (exists
+     t : Time :- capacity(si, n) < card({ti | ti : TramId :-
+     currentState(ti, tt, t) = (si, si)}))),
+
+     capacityAtConnection: TimeTable >< Net -> Bool
+     capacityAtConnection(tt, n) is ~(exists c : Connection :-
+					     let 
+						(s1, s2, at, dt) = c
+					     in
+						areDirectlyConnected(s1, s2) => 
+						(exists t: Time :-
+						capacity(c, n) <
+						tramsInDirection(tt,
+						t, s1, s2) +
+						tramsInDirection(tt,
+						t, s2, s1))
+					      end),
+					      
+     overlappingDirection: TimeTable >< Net -> Bool
+     overlappingDirection(tt, n) is ~(exists c : Connection :-
+					   let
+						(s1, s2, at, dt) = c
+					   in
+						areDirectlyConnected(s1, s2, n) =>
+						(exists t : Time :-
+						tramsInDirection(tt,
+						t, s1, s2) > 0 /\
+						tramsInDirection(tt,
+						t, s2, s1) > 0)
+					   end),
+    
+     tramsInDirection: TimeTable >< Time >< StopId >< StopId -> Nat
+     tramsInDirection(tt, t, s1, s2) is card({ti | ti : TramId :-
+						currentState(ti, tt,t)
+						= (s1, s2)}),
      
-			        
+     noStopSkip: TimeTable >< Net -> Bool
+     noStopSkip(tt, n) is ~(exists p : Plan :- p isin tt =>
+				   let
+					(si, at, dt) = hd(p)
+				   in
+					recStopSkip(si, tl(p), n)
+				   end),
+     
+     recStopSkip: StopId >< Plan >< Net -> Bool
+     recStopSkip(s1, p, n) is let
+				 (s2, at, dt) = if p ~= emptyPlan then
+				 hd(p) end
+			      in
+			         if p = emptyPlan then
+				    True
+				 elsif ~areDirectlyConnected(s1, s2, n) then
+				    False
+				 else
+				    recStopSkip(s2, tl(p), n)
+				 end
+			       end,
+			       
+     CorrectDrivingTime: TimeTable >< Net -> Bool
+     CorrectDrivingTime(tt, n) is ~(exists p : Plan :- p isin tt =>
+				  let
+				     (si, at, dt) = hd(p)
+				  in
+				     recCorrectDrivingTime(si, dt,
+				     tl(p), n)
+				  end),
+     
+     recCorrectDrivingTime: StopId >< Time >< Plan >< Net -> Bool
+     recCorrectDrivingTime(s1, t, p, n) is 
+				     let
+					 (s2, at, dt) = if p ~=
+					 emptyPlan then  hd(p) end
+				     in
+					if p = emptyPlan then
+					   True
+				        elsif at - t < minDrivingTime(s1, s2, n) then
+					   False
+				        else
+					   recCorrectDrivingTime(s2, dt, tl(p), n)
+				        end
+			             end,   
+
      isWellformed : TimeTable >< Net -> Bool
-     isWellformed(t, n) is ...,			 
+     isWellformed(tt, n) is 
+		      noEntryInPlan(tt, n) /\
+		      correctTimingAtStop(tt, n) /\ 
+		      capacityAtStop(tt, n) /\
+		      capacityAtConnection(tt, n) /\ 
+		      overlappingDirection(tt, n) /\
+		      noStopSkip(tt, n) /\ 
+		      correctDrivingTime(tt, n)		 
      
 end  

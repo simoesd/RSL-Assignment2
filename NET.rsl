@@ -3,7 +3,14 @@ class
   type 
    Net = Stop-set >< Connection-set,
    Stop = StopId >< Capacity >< WaitingTime,
-   Connection = Stop >< Stop >< Capacity >< DrivingTime,
+   /* Connection = StopId >< StopId >< Capacity >< DrivingTime, */
+
+   Connection ::
+    id1: StopId
+    id2: StopId
+    c: Capacity
+    dt: DrivingTime,
+    
    StopId = Text,     
    Capacity = Nat,   
    WaitingTime = Time,  
@@ -19,24 +26,45 @@ class
       if stops = {} then (stops union {(id, c, wt)}, connections)
       elsif id isin {stopId | (stopId, sc, sw): Stop :- (stopId, sc, sw) isin stops} then (stops, connections)
       else (stops union {(id, c, wt)}, connections)
-      end
+      end,
 
-/*   -- add a connection between given stops, 
+
+   -- add a connection between given stops, 
    -- with a given capacity and a given minimum driving time 
    addConnection : StopId >< StopId >< Capacity >< DrivingTime >< Net -> Net 
-  
+   addConnection(id1, id2, c, dt, (stops, connections)) is
+    if stops = {} then (stops, connections)
+    elsif isIn(id1, (stops, connections)) /\ isIn(id2, (stops,
+    connections)) /\ ~areDirectlyConnected(id1, id2, (stops,connections))
+    then (stops, connections union {mk_Connection(id1, id2, c, dt)})
+    else (stops, connections)
+    end
+
+    
+    
+
  value /* observers */
    -- check whether a stop is in a network     
-   isIn : StopId >< Net -> Bool,
+   isIn : StopId >< Net -> Bool
+   isIn(stopId, (stops, connections)) is 
+        stopId isin {sId | (sId, sc, sw): Stop :- (sId, sc, sw) isin stops},
 
+
+   -- check whether two stops are directly connected in a network        
+   areDirectlyConnected : StopId >< StopId >< Net -> Bool
+   areDirectlyConnected(id1, id2, (stops, connections)) is 
+    (
+    exists c : Connection :- 
+       id1 = id1(c) /\ id2 = id2(c) /\ c isin connections
+    )
+
+ /* 
    -- get the capacity of a stop 
    capacity : StopId >< Net -~-> Capacity,
 
    -- get the minimum waiting time of a stop 
    minWaitingTime : StopId >< Net -~-> WaitingTime,
 
-   -- check whether two stops are directly connected in a network        
-   areDirectlyConnected : StopId >< StopId >< Net -> Bool,
 
    -- get the capacity for a connection between two connected stops
    capacity : StopId >< StopId >< Net -~-> Capacity,

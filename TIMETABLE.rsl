@@ -3,10 +3,17 @@ scheme TIMETABLE = extend NET with
 class
   type 
     TimeTable = TramId -m-> Plan, -- time tables
-    Plan = (StopId >< Time >< Time)-list,
+    Entry::
+	si: StopId
+	at: Time
+	dt: Time,
+    Plan = (Entry)-list,
     TramId = Text, -- tram names
-    Connection = StopId >< StopId >< Capacity >< DrivingTime,
-    State = StopId >< StopId    
+    Connection::
+	s1: StopId
+	s2: StopId
+	c: Capacity
+	t: DrivingTime
 
     value /* generators */
       -- the empty timetable
@@ -19,8 +26,8 @@ class
 
 
       -- add a stop with arrival time and departure time to the plan for a given tram
-      addStop: TramId >< StopId >< Time >< Time >< TimeTable ->TimeTable
-      addStop(ti, si, t1, t2, tt) is tt(ti) union (si, t1, t2)
+      addStop: TramId >< StopId >< Time >< Time >< TimeTable -> TimeTable
+      addStop(ti, si, t1, t2, tt) is tt !! [ti +> tt(ti) ^ <.mk_Entry(si, t1, t2).>]
       pre isIn(ti, tt)
 
   value /* observers */
@@ -29,17 +36,14 @@ class
      isIn(ti, tt) is ti isin dom(tt),
      
      isIn: StopId >< Plan -> Bool
-     isIn(si, p) is let
-			(cs, at, dt) = if p ~= emptyPlan then hd(p) end
-	            in
-			if p = emptyPlan then
-			   false
-			elsif si = cs then
-			   true
-			else
-			   isIn(si, tl(p))
-			end
-	            end
+     isIn(si, p) is
+		   if p = emptyPlan then
+		      false
+		   elsif si = si(hd(p)) then
+		      true
+		   else
+		      isIn(si, tl(p))
+		   end
 			   
      -- you can add more observers here
      
@@ -53,29 +57,23 @@ class
 
      correctTimingAtStop: TimeTable >< Net -> Bool
      correctTimingAtStop(tt, n) is (all p : Plan :- p isin rng(tt) =>
-			     ~(exists (si, at, dt): StopId >< Time ><
-			     Time :- (si, at, dt) isin p /\ dt - at <
-			     minWaitingTime(si, n))),
+			     ~(exists e: Entry :- e isin p /\ dt(e) - at(e) <
+			     minWaitingTime(si(e), n))),
 
-     currentState: TramId >< TimeTable >< Time -> State
-     currentState(ti, tt, t) is 
-				let
-				   (si, at, dt) = hd(tt(ti))
-				in  
-				   recCurrentState(tt(ti), si, t)
-				end,
+     currentState: TramId >< TimeTable >< Time -> StopId >< StopId
+     currentState(ti, tt, t) is recCurrentState(tt(ti), si(hd(tt(ti))), t),
 
-     recCurrentState: Plan >< StopId >< Time -> State
+     recCurrentState: Plan >< StopId >< Time -> StopId >< StopId
      recCurrentState(p, sio,  t) is 
 			  let 
-			     (si, at, dt) = hd(p)
+			     e = hd(p)
 			  in
-			     if t > dt then
-				recCurrentState(tl(p), si, t)
-			     elsif t >= at then
-			        (si, si)
+			     if t > dt(e) then
+				recCurrentState(tl(p), si(e), t)
+			     elsif t >= at(e) then
+			        (si(e), si(e))
 			     else
-			        (sio, si)
+			        (sio, si(e))
 			     end
 			  end,
      
@@ -86,18 +84,18 @@ class
 
      capacityAtConnection: TimeTable >< Net -> Bool
      capacityAtConnection(tt, n) is ~(exists c : Connection :-
-					     let 
-						(s1, s2, at, dt) = c
-					     in
-						areDirectlyConnected(s1, s2) => 
+						areDirectlyConnected(s1(c), s2(c)) => 
 						(exists t: Time :-
 						capacity(c, n) <
 						tramsInDirection(tt,
-						t, s1, s2) +
+						t, s1(c), s2(c)) +
 						tramsInDirection(tt,
-						t, s2, s1))
-					      end),
+						t, s2(c), s1(c)))),
 					      
+					 ------- SHORT RECORD
+					 -- CONVERSION IN PROGRESS,
+					 -- CURRENTLY AT THIS POINT --------
+
      overlappingDirection: TimeTable >< Net -> Bool
      overlappingDirection(tt, n) is ~(exists c : Connection :-
 					   let

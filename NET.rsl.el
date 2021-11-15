@@ -1,1 +1,1 @@
-(setq rsl-overlay-poss (list (list (rsl-lc-to-pos 21 12) (rsl-lc-to-pos 22 7)) ))
+(setq rsl-overlay-poss nil)

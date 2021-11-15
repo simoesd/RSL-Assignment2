@@ -127,11 +127,11 @@ structure NETTEST =
         
         type Time_ = RT_Nat.t;
         
-        fun insertStop'CE9_ (id'D58_, c'D5C_, wt'D5F_, (stops'D64_, connections'D6B_)) = (R_coverage.cancel(RT_Text.fromLit "NET.rsl", (19, 7)); if not((RT_Nat.R_ge (c'D5C_, RT_Int.fromLit "0")) andalso ((RT_Nat.R_ge (wt'D5F_, RT_Int.fromLit "0")) andalso (((RT_s_2.R_all (fn (x_'0_:RT_x_1.t) => let
+        fun insertStop'D4D_ (id'DBC_, c'DC0_, wt'DC3_, (stops'DC8_, connections'DCF_)) = (R_coverage.cancel(RT_Text.fromLit "NET.rsl", (19, 7)); if not((RT_Nat.R_ge (c'DC0_, RT_Int.fromLit "0")) andalso ((RT_Nat.R_ge (wt'DC3_, RT_Int.fromLit "0")) andalso (((RT_s_2.R_all (fn (x_'0_:RT_x_1.t) => let
             val (x1_'0_, x2_'0_, x3_'0_) = ((x_'0_):RT_x_1.t)
         in
             (RT_Nat.R_ge (x2_'0_, RT_Int.fromLit "0")) andalso (RT_Nat.R_ge (x3_'0_, RT_Int.fromLit "0"))
-        end) (stops'D64_))) andalso ((RT_s_4.R_all (fn (x_'0_:RT_x_3.t) => let
+        end) (stops'DC8_))) andalso ((RT_s_4.R_all (fn (x_'0_:RT_x_3.t) => let
             val (x4_'0_, x5_'0_, x6_'0_, x7_'0_) = ((x_'0_):RT_x_3.t)
         in
             (let
@@ -143,9 +143,9 @@ structure NETTEST =
             in
                 (RT_Nat.R_ge (x12_'0_, RT_Int.fromLit "0")) andalso (RT_Nat.R_ge (x13_'0_, RT_Int.fromLit "0"))
             end) andalso ((RT_Nat.R_ge (x6_'0_, RT_Int.fromLit "0")) andalso (RT_Nat.R_ge (x7_'0_, RT_Int.fromLit "0"))))
-        end) (connections'D6B_)))))) then raise RSL.RSL_exception ("NET.rsl:17:5: Argument of insertStop" ^ RT_x_6.toString (id'D58_, c'D5C_, wt'D5F_, (stops'D64_, connections'D6B_)) ^ " not in subtype") else if RT_s_2.equ (stops'D64_, RT_s_2.R_fromList []) then (R_coverage.cancel(RT_Text.fromLit "NET.rsl", (19, 26)); (RT_s_2.R_union (stops'D64_, RT_s_2.R_fromList ([(id'D58_, c'D5C_, wt'D5F_)])), connections'D6B_)) else if RT_s_7.R_mem (id'D58_, (RT_s_7.R_compss (fn ((stopId'E30_, sc'E38_, sw'E3C_):RT_x_1.t) => stopId'E30_) (fn ((stopId'E30_, sc'E38_, sw'E3C_):RT_x_1.t) => (RT_Nat.R_ge (sc'E38_, RT_Int.fromLit "0")) andalso (RT_Nat.R_ge (sw'E3C_, RT_Int.fromLit "0"))) (stops'D64_))) then (R_coverage.cancel(RT_Text.fromLit "NET.rsl", (20, 91)); (stops'D64_, connections'D6B_)) else (R_coverage.cancel(RT_Text.fromLit "NET.rsl", (21, 12)); (RT_s_2.R_union (stops'D64_, RT_s_2.R_fromList ([(id'D58_, c'D5C_, wt'D5F_)])), connections'D6B_)));
+        end) (connections'DCF_)))))) then raise RSL.RSL_exception ("NET.rsl:17:5: Argument of insertStop" ^ RT_x_6.toString (id'DBC_, c'DC0_, wt'DC3_, (stops'DC8_, connections'DCF_)) ^ " not in subtype") else if RT_s_2.equ (stops'DC8_, RT_s_2.R_fromList []) then (R_coverage.cancel(RT_Text.fromLit "NET.rsl", (19, 26)); (RT_s_2.R_union (stops'DC8_, RT_s_2.R_fromList ([(id'DBC_, c'DC0_, wt'DC3_)])), connections'DCF_)) else if RT_s_7.R_mem (id'DBC_, (RT_s_7.R_compss (fn ((stopId'E94_, sc'E9C_, sw'EA0_):RT_x_1.t) => stopId'E94_) (fn ((stopId'E94_, sc'E9C_, sw'EA0_):RT_x_1.t) => (RT_Nat.R_ge (sc'E9C_, RT_Int.fromLit "0")) andalso (RT_Nat.R_ge (sw'EA0_, RT_Int.fromLit "0"))) (stops'DC8_))) then (R_coverage.cancel(RT_Text.fromLit "NET.rsl", (20, 91)); (stops'DC8_, connections'DCF_)) else (R_coverage.cancel(RT_Text.fromLit "NET.rsl", (21, 12)); (RT_s_2.R_union (stops'DC8_, RT_s_2.R_fromList ([(id'DBC_, c'DC0_, wt'DC3_)])), connections'DCF_)));
         
-        val empty'BBD_ = (RT_s_2.R_fromList [], RT_s_4.R_fromList []);
+        val empty'C21_ = (RT_s_2.R_fromList [], RT_s_4.R_fromList []);
         
         val s3'325_ = (RT_Text.fromLit "a", RT_Int.fromLit "2", RT_Int.fromLit "1");
         
@@ -164,9 +164,11 @@ R_coverage.init();
 R_coverage.mark(RT_Text.fromLit "NET.rsl", (20, 91), (21, 10));
 R_coverage.mark(RT_Text.fromLit "NET.rsl", (19, 26), (20, 7));
 R_coverage.mark(RT_Text.fromLit "NET.rsl", (19, 7), (52, 3)));
-(RSL.C_output "[t001] " RT_Bool.toStringSafe (fn _ => RT_x_5.equ (((insertStop'CE9_) (RT_Text.fromLit "a", RT_Int.fromLit "1", RT_Int.fromLit "1", (RT_s_2.R_fromList [], RT_s_4.R_fromList []))), (RT_s_2.R_fromList ([s1'25D_]), RT_s_4.R_fromList []))));
+(RSL.C_output "[t001] " RT_Bool.toStringSafe (fn _ => RT_x_5.equ (((insertStop'D4D_) (RT_Text.fromLit "a", RT_Int.fromLit "1", RT_Int.fromLit "1", (RT_s_2.R_fromList [], RT_s_4.R_fromList []))), (RT_s_2.R_fromList ([s1'25D_]), RT_s_4.R_fromList []))));
 
-(RSL.C_output "[t002] " RT_Bool.toStringSafe (fn _ => RT_x_5.equ (((insertStop'CE9_) (RT_Text.fromLit "a", RT_Int.fromLit "1", RT_Int.fromLit "2", (RT_s_2.R_fromList ([s1'25D_]), RT_s_4.R_fromList []))), (RT_s_2.R_fromList ([s1'25D_]), RT_s_4.R_fromList []))));
+(RSL.C_output "[t002] " RT_Bool.toStringSafe (fn _ => RT_x_5.equ (((insertStop'D4D_) (RT_Text.fromLit "a", RT_Int.fromLit "1", RT_Int.fromLit "2", (RT_s_2.R_fromList ([s1'25D_]), RT_s_4.R_fromList []))), (RT_s_2.R_fromList ([s1'25D_]), RT_s_4.R_fromList []))));
+
+(RSL.C_output "[t003] " RT_Bool.toStringSafe (fn _ => RT_x_5.equ (((insertStop'D4D_) (RT_Text.fromLit "b", RT_Int.fromLit "1", RT_Int.fromLit "1", (RT_s_2.R_fromList ([s1'25D_]), RT_s_4.R_fromList []))), (RT_s_2.R_fromList ([s1'25D_, s2'2C1_]), RT_s_4.R_fromList []))));
 
 RSL.print_error_count();
 R_coverage.save_marked();

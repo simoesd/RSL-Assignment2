@@ -2,3 +2,13 @@
 TIMETABLE_.sml
 TIMETABLE.sml
 TIMETABLE.rsl~
+*.rsl#
+*.el
+*.el0
+*.el
+*.sml
+*.results
+*.rsl~
+NET.rsl.el
+NETTEST.sml
+NETTEST_.sml

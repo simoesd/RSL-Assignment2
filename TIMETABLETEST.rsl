@@ -1,0 +1,28 @@
+TIMETABLE
+	
+scheme TIMETABLETEST = 
+  extend TIMETABLE with 
+  class 
+    value 
+      t1 : TramId = "t1",
+      t2 : TramId = "t2",
+      s1 : StopId = "A",
+      s2 : StopId = "B"
+    	 
+    test_case 
+      /* constructors */
+      [tt001] addTram(t1, empty) = [t1 +> emptyPlan],
+
+      [tt002] addStop(t1, s1, 0, 2, addTram(t1, empty)) = [t1 +>
+      <.mk_Entry(s1, 0, 2).>],
+
+      [tt003] addStop(t2, s1, 0, 2, addTram(t1, empty)),
+
+      /* observers */
+      [tt101] isIn(t1, addTram(t1, empty)) = true,
+      [tt102] isIn(t2, addTram(t1, empty)) = false,
+
+      [tt103] isIn(s1, hd(rng(addStop(t1, s1, 0, 2, addTram(t1, empty))))) =
+      true,
+      [tt104] isIn(s2, addStop(t1, s1, 0, 2, addTram(t1, empty))) = false
+end

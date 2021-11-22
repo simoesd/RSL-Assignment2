@@ -24,7 +24,7 @@ class
     [t_add_same_stopId_connection] addConnection("a", "a", 3, 3, mk_Net({s1}, {})) = mk_Net({s1}, {}),
 
     [t_add_flipped_stopIds] addConnection("b", "a", 3, 3, mk_Net({s1, s2}, {mk_Connection("a", "b", 3, 3)})) = 
-                                                                                    mk_Net({s1}, {mk_Connection("a", "b", 3, 3)}),
+                                                                                    mk_Net({s1, s2}, {mk_Connection("a", "b", 3, 3)}),
 
     -- isIn
     -- isIn : StopId >< Net -> Bool

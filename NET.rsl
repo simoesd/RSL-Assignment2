@@ -64,12 +64,13 @@ class
 
    -- check whether two stops are directly connected in a network        
     areDirectlyConnected : StopId >< StopId >< Net -> Bool
-    areDirectlyConnected(id1, id2, n) is 
+    areDirectlyConnected(sId1, sId2, n) is 
+    (~(connections(n) = {}) /\
     (
-     exists c : Connection :- 
-     c isin connections(n) /\ id1 = id1(c) /\ id2 = id2(c)
-                           /\ id1 = id2(c) /\ id2 = id1(c)
-    ),
+     all c : Connection :- c isin connections(n) => (
+      (sId1 = id1(c) /\ sId2 = id2(c)) \/
+      (sId1 = id2(c) /\ sId2 = id1(c)))
+    )),
 
 --    -- get the capacity of a stop 
     capacity : StopId >< Net -~-> Capacity

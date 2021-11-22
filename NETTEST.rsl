@@ -5,7 +5,14 @@ class
   value 
     s1 : Stop = mk_Stop("a", 1, 1),
     s2 : Stop = mk_Stop("b", 1, 1),   
-    s3_inv_same_s1 : Stop = mk_Stop("a", 2, 1)
+    s3_inv_same_s1 : Stop = mk_Stop("a", 2, 1),
+
+
+    c1 : Connection = mk_Connection(sId(s1), sId(s2), 2, 3),
+
+    n_no_connections : Net = mk_Net({s1,s2},{}),
+    n1 : Net = mk_Net({s1,s2},{c1})
+
   test_case
 
     -- insertStop
@@ -16,15 +23,23 @@ class
 
     -- addConnection
     -- adding if capacitiy is 0? (not sure)
-    [t_valid_add_connection] addConnection("a", "b", 3, 3, mk_Net({s1, s2}, {})) = mk_Net({s1, s2},
-                                                                                          {mk_Connection("a", "b", 3, 3)}),
+    [t_valid_add_connection] 
+    /* addConnection("a", "b", 3, 3, mk_Net({s1, */
+    /* s2}, {})) = mk_Net({s1, s2}, {mk_Connection("a", "b", 3, 3)}), */
+
+    addConnection(sId(s1),sId(s2), 2, 3, n_no_connections) = n1,
 
     [t_add_nonexisted_stopId_to_connection] addConnection("a", "b", 3, 3, mk_Net({s1}, {})) = mk_Net({s1}, {}),
 
     [t_add_same_stopId_connection] addConnection("a", "a", 3, 3, mk_Net({s1}, {})) = mk_Net({s1}, {}),
 
-    [t_add_flipped_stopIds] addConnection("b", "a", 3, 3, mk_Net({s1, s2}, {mk_Connection("a", "b", 3, 3)})) = 
-                                                                                    mk_Net({s1, s2}, {mk_Connection("a", "b", 3, 3)}),
+    /* [t_add_flipped_stopIds] addConnection("b", "a", 3, 3, mk_Net({s1, */
+    /* s2}, {mk_Connection("a", "b", 3, 3)})) = mk_Net({s1, s2}, */
+    /* {mk_Connection("a", "b", 3, 3)}), */
+
+    [t_add_flipped_stopIds] addConnection("b", "a", 2, 3,
+    n1) = n1,
+
 
     -- isIn
     -- isIn : StopId >< Net -> Bool

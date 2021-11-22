@@ -12,3 +12,14 @@ TIMETABLE.rsl~
 NET.rsl.el
 NETTEST.sml
 NETTEST_.sml
+*.el
+NET.rsl.el
+*.sml
+TIMETABLETEST.pvs
+TIMETABLE.pvs
+NETTEST_.sml
+NETTEST.sml
+NET_.sml
+NET.sml
+NET.rsl.el
+isWellformedTimeTableCases.txt

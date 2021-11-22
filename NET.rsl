@@ -1,7 +1,13 @@
 scheme NET =
 class
   type 
-   Net = Stop-set >< Connection-set,
+ --  Net = Stop-set >< Connection-set,
+
+   Net :: 
+    stops: Stop-set
+    connections: Connection-set,
+
+
   --  Stop = StopId >< Capacity >< WaitingTime,
 
 
@@ -26,78 +32,117 @@ class
    Time = Nat 
 
   value /* generators */
-    empty :  Net = ({}, {}),
+    empty :  Net = mk_Net({},{}),
 
     -- insert a stop with a given name, capacity and minimum waiting time
     insertStop : StopId >< Capacity >< WaitingTime >< Net -> Net
-    insertStop(id, c, wt, (stops, connections)) is
-      if stops = {} then (stops union {mk_Stop(id, c, wt)}, connections)
-      elsif isIn(id, (stops, connections)) then (stops, connections)
-      else (stops union  {mk_Stop(id, c, wt)}, connections)
+    insertStop(id, c, wt, n) is
+      if stops(n) = {} then mk_Net(stops(n) union {mk_Stop(id, c, wt)},
+        connections(n))
+      elsif isIn(id, n) then n
+      else mk_Net(stops(n) union  {mk_Stop(id, c, wt)}, connections(n))
       end,
 
 
   --  add a connection between given stops, 
   --  with a given capacity and a given minimum driving time 
    addConnection : StopId >< StopId >< Capacity >< DrivingTime >< Net -> Net 
-   addConnection(id1, id2, c, dt, (stops, connections)) is
-    if stops = {} then (stops, connections)
-    elsif isIn(id1, (stops, connections)) /\ isIn(id2, (stops,
-    connections)) /\ ~areDirectlyConnected(id1, id2, (stops,connections))
-    then (stops, connections union {mk_Connection(id1, id2, c, dt)})
-    else (stops, connections)
+   addConnection(id1, id2, c, dt, n) is
+    if stops(n) = {} then n
+    elsif isIn(id1, n) /\ isIn(id2, n) /\ ~areDirectlyConnected(id1,
+    id2, n)
+    then mk_Net(stops(n), connections(n) union {mk_Connection(id1, id2, c, dt)})
+    else n
     end
 
     
   value /* observers */
    -- check whether a stop is in a network     
     isIn : StopId >< Net -> Bool
-    isIn(stopId, (stops, connections)) is 
-      (exists s : Stop :- s isin stops /\ (sId(s) = stopId)),
+    isIn(stopId, n) is 
+      (exists s : Stop :- s isin stops(n) /\ (sId(s) = stopId)),
 
 
    -- check whether two stops are directly connected in a network        
     areDirectlyConnected : StopId >< StopId >< Net -> Bool
-    areDirectlyConnected(id1, id2, (stops, connections)) is 
+    areDirectlyConnected(id1, id2, n) is 
     (
-    exists c : Connection :- 
-    c isin connections /\ id1 = id1(c) /\ id2 = id2(c)
+     exists c : Connection :- 
+     c isin connections(n) /\ id1 = id1(c) /\ id2 = id2(c)
     ),
 
 --    -- get the capacity of a stop 
     capacity : StopId >< Net -~-> Capacity
-    capacity(stopId, (stops, connections)) is if isIn(stopId, (stops, connections)) then c(stopsRecursive(stopId, stops)) else 0 end,
+    capacity(stopId, n) is 
+      if isIn(stopId, n) then c(stopsRecursive(stopId, stops(n))) 
+      else 0 
+    end,
     
     --  recursive stop traversal method
     stopsRecursive : StopId >< Stop-set -> Stop
-    stopsRecursive(stopId, stops) is if sId(hd(stops)) ~= stopId then stopsRecursive(stopId, stops \ {hd(stops)}) else hd(stops) end,
+    stopsRecursive(stopId, stops) is 
+      if sId(hd(stops)) ~= stopId then stopsRecursive(stopId, stops \ {hd(stops)}) 
+      else hd(stops) 
+    end,
     
 
    -- get the minimum waiting time of a stop 
    minWaitingTime : StopId >< Net -~-> WaitingTime
-   minWaitingTime(stopId, (stops, connections)) is if isIn(stopId, (stops, connections)) then wt(stopsRecursive(stopId, stops)) else 0 end,
+   minWaitingTime(stopId, n) is 
+    if isIn(stopId, n) then wt(stopsRecursive(stopId, stops(n))) 
+    else 0 
+   end,
    
     --  recursive stop traversal method
     stopsConnRecursive : StopId >< StopId >< Connection-set -> Connection
-    stopsConnRecursive(sId1, sId2, stops) is if (id1(hd(stops)) = sId1 /\ id2(hd(stops)) = sId2) \/ (id1(hd(stops)) = sId2 /\ id2(hd(stops)) = sId1) 
-    then stopsConnRecursive(sId1, sId2, stops \ {hd(stops)}) else hd(stops) end,
+    stopsConnRecursive(sId1, sId2, stops) is 
+      if (id1(hd(stops)) = sId1 /\ id2(hd(stops)) = sId2) 
+      \/ (id1(hd(stops)) = sId2 /\ id2(hd(stops)) = sId1) 
+        then stopsConnRecursive(sId1, sId2, stops \ {hd(stops)}) 
+      else hd(stops) 
+    end,
 
     isInConn : StopId >< StopId >< Net -> Bool
-    isInConn(sId1, sId2, (stops, connections)) is 
-      (exists c : Connection :- c isin connections /\ (((id1(c) = sId1) /\ id2(c) = sId2) \/ ((id1(c) = sId2) /\ id2(c) = sId1))),
+    isInConn(sId1, sId2, n) is 
+      (exists c : Connection :- c isin connections(n) /\ (((id1(c) = sId1) 
+              /\ id2(c) = sId2) \/ ((id1(c) = sId2) /\ id2(c) = sId1))),
 
 
     capacity : StopId >< StopId >< Net -~-> Capacity
-    capacity(sId1, sId2, (stops, connections)) is if isInConn(sId1, sId2, (stops, connections)) then c(stopsConnRecursive(sId1, sId2, connections)) else 0 end,
+    capacity(sId1, sId2, n) is 
+      if isInConn(sId1, sId2, n) then c(stopsConnRecursive(sId1, sId2,
+        connections(n))) 
+      else 0 
+    end,
 
 
 --    -- get minimum driving time between two connected stops        
    minDrivingTime : StopId >< StopId >< Net -~-> DrivingTime
-   minDrivingTime(sId1, sId2, (stops, connections)) is if isInConn(sId1, sId2, (stops, connections)) then dt(stopsConnRecursive(sId1, sId2, connections)) else 0 end
+   minDrivingTime(sId1, sId2, n) is 
+    if isInConn(sId1, sId2, n) then dt(stopsConnRecursive(sId1, sId2,
+      connections(n))) 
+    else 0 
+   end,
 
---  value /* predicates to check nets */
+
+  connectedBothWays : Stop >< Stop >< Connection-set -> Bool
+  connectedBothWays(stop1, stop2, connections) is
+    (
+    exists s1, s2: Stop, c1, c2 : Connection :- c1 isin connections /\
+    c2 isin connections /\ s1 = stop1 /\ s2 = stop2 /\ id1(c1) = sId(s1)
+    /\ id2(c1) = sId(s2) /\ id1(c2) = sId(s2) /\ id2(c2) = sId(s1)
+    )
+
+ /* predicates to check nets
+
+  - at most one track connecting two stops.
+    - NOT A->B and B->A 
+
 --    isWellformed : Net -> Bool
---    isWellformed(n) is ...
+--    isWellformed(n) is
+        if 
+        
+        
 
 --    */
 end  

@@ -71,3 +71,12 @@ States (eg. traffic lights example). Look at the time table.
 - We can't have two trains in the same connection that drives in different direction
 - We can't have that a tram skips a stop. For example, if tram goes from A --> C, and it has to go through B, it has to stop there.
 
+
+
+# Questions
+
+- We understood -> Connections are two-way
+    - But we can not have trams going opposite ways on same connection
+    - If A->B has capacity 2, we can have two trams going from A->B but
+      __not__ one from A->B and one from B->A
+- Is empty-set a wellformed Net?

@@ -130,15 +130,20 @@ class
 							recTramsInDirection(tt \ {hd(dom(tt))}, t, s1, s2, counter)
 						    end,
      
-     noStopSkip: TimeTable >< Net -> Bool
-     noStopSkip(tt, n) is (all p : Plan :- p isin rng(tt) =>
-					recStopSkip(si(hd(p)), tl(p), n)),
+     noSkipStop: TimeTable >< Net -> Bool
+     noSkipStop(tt, n) is (all p : Plan :- p isin rng(tt) =>
+					if p = emptyPlan then true
+					else
+						recStopSkip(si(hd(p)), tl(p), n)
+					end),
      
+
      recStopSkip: StopId >< Plan >< Net -> Bool
      recStopSkip(s1, p, n) is 
 				 if p = emptyPlan then 
 				    true
-				 elsif ~areDirectlyConnected(s1, si(hd(p)), n) then
+				 elsif ~(areDirectlyConnected(s1,
+				 si(hd(p)), n)) then
 				    false
 				 else
 				    recStopSkip(si(hd(p)), tl(p), n)
@@ -164,8 +169,8 @@ class
 		      correctTimingAtStop(tt, n) /\ 
 		      capacityAtStop(tt, n) /\
 		      capacityAtConnection(tt, n) /\ 
-		      overlappingDirection(tt, n) /\
-		      noStopSkip(tt, n) /\ 
+		      ~overlappingDirection(tt, n) /\
+		      noSkipStop(tt, n) /\ 
 		      correctDrivingTime(tt, n)		 
      
 end  

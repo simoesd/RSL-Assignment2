@@ -47,11 +47,11 @@ class
   --  add a connection between given stops, 
   --  with a given capacity and a given minimum driving time 
    addConnection : StopId >< StopId >< Capacity >< DrivingTime >< Net -> Net 
-   addConnection(id1, id2, c, dt, n) is
-    if stops(n) = {} then n
-    elsif isIn(id1, n) /\ isIn(id2, n) /\ ~areDirectlyConnected(id1,
-    id2, n)
-    then mk_Net(stops(n), connections(n) union {mk_Connection(id1, id2, c, dt)})
+   addConnection(sId1, sId2, c, dt, n) is
+    if stops(n) = {} \/ sId1 = sId2 then n 
+    elsif isIn(sId1, n) /\ isIn(sId2, n) /\ ~areDirectlyConnected(sId1,
+    sId2, n)
+    then mk_Net(stops(n), connections(n) union {mk_Connection(sId1, sId2, c, dt)})
     else n
     end
 
@@ -95,11 +95,12 @@ class
    
     --  recursive stop traversal method
     stopsConnRecursive : StopId >< StopId >< Connection-set -> Connection
-    stopsConnRecursive(sId1, sId2, stops) is 
-      if (id1(hd(stops)) = sId1 /\ id2(hd(stops)) = sId2) 
-      \/ (id1(hd(stops)) = sId2 /\ id2(hd(stops)) = sId1) 
-        then stopsConnRecursive(sId1, sId2, stops \ {hd(stops)}) 
-      else hd(stops) 
+    stopsConnRecursive(sId1, sId2, connections) is
+      if connections = {} then mk_Connection("","",0,0)
+      elsif (id1(hd(connections)) = sId1 /\ id2(hd(connections)) = sId2) \/ 
+            (id1(hd(connections)) = sId2 /\ id2(hd(connections)) = sId1)
+              then hd(connections) 
+      else stopsConnRecursive(sId1, sId2, connections \ {hd(connections)})
     end,
 
     isInConn : StopId >< StopId >< Net -> Bool
@@ -128,21 +129,24 @@ class
   connectedBothWays : Stop >< Stop >< Connection-set -> Bool
   connectedBothWays(stop1, stop2, connections) is
     (
-    exists s1, s2: Stop, c1, c2 : Connection :- c1 isin connections /\
-    c2 isin connections /\ s1 = stop1 /\ s2 = stop2 /\ id1(c1) = sId(s1)
-    /\ id2(c1) = sId(s2) /\ id1(c2) = sId(s2) /\ id2(c2) = sId(s1)
-    )
+     all c1 : Connection :- c1 isin connections => (
+     all c2 : Connection :- c2 isin connections  => (
+      id1(c1) = sId(stop1) /\  id2(c1) = sId(stop2) /\ 
+      id1(c2) = sId(stop2) /\ id2(c2) = sId(stop1)
+    ))),
 
- /* predicates to check nets
+/* predicates to check nets
 
   - at most one track connecting two stops.
     - NOT A->B and B->A 
+  - Check that all stops and connections have valid values
 
---    isWellformed : Net -> Bool
---    isWellformed(n) is
-        if 
-        
-        
-
---    */
+*/
+    isWellformed : Net -> Bool
+    isWellformed(n) is
+    -- No stops are connected both ways
+    (
+       all s1 : Stop :- s1 isin stops(n) => (
+       all s2 : Stop :- s2 isin stops(n) => 
+        ~(connectedBothWays(s1, s2, connections(n)))))
 end  

@@ -74,12 +74,8 @@ class
      
      capacityAtStop: TimeTable >< Net -> Bool
      capacityAtStop(tt, n) is
-     let
-	(stopSet, connections) = n
-     in
-	 (all s : Stop :- s isin stopSet => ~(exists
-	 t : Time :- t isin {0..60} /\ capacity(sId(s), n) < tramsAtStop(tt, t, sId(s), 0)))
-     end,
+	 (all s : Stop :- s isin stops(n) => ~(exists
+	 t : Time :- t isin {0..60} /\ capacity(sId(s), n) < tramsAtStop(tt, t, sId(s), 0))),
 
      tramsAtStop: TimeTable >< Time >< StopId >< Nat -> Nat
      tramsAtStop(tt, t, si, counter) is if tt = empty then counter
@@ -90,33 +86,25 @@ class
 					end,
 
      capacityAtConnection: TimeTable >< Net -> Bool
-     capacityAtConnection(tt, n) is let
-				 (stopSet, connections) = n
-			      in
-					(all c : Connection :-
-						c isin connections => 
+     capacityAtConnection(tt, n) is (all c : Connection :-
+						c isin connections(n) => 
 						~(exists t: Time :- t isin {0..60} /\
 						capacity(id1(c), id2(c), n) <
 						tramsInDirection(tt,
 						t, id1(c), id2(c)) +
 						tramsInDirection(tt,
-						t, id2(c), id1(c))))
-				end,
+						t, id2(c), id1(c)))),
 					      
 
      overlappingDirection: TimeTable >< Net -> Bool
      overlappingDirection(tt, n) is 
-			      let
-				(stopSet, connections) = n
-			      in
-				~(all c : Connection :- c isin connections =>
+				~(all c : Connection :- c isin connections(n) =>
 						~(exists t : Time :- t
 						isin {0..60} /\
 						(tramsInDirection(tt, t, id1(c), id2(c)) > 0 /\
 						tramsInDirection(tt,
 						t, id2(c), id1(c)) >
-						0)))
-				end,
+						0))),
 
      tramsInDirection: TimeTable >< Time >< StopId >< StopId -> Nat
      tramsInDirection(tt, t, s1, s2) is recTramsInDirection(tt, t, s1, s2, 0),
@@ -130,15 +118,20 @@ class
 							recTramsInDirection(tt \ {hd(dom(tt))}, t, s1, s2, counter)
 						    end,
      
-     noStopSkip: TimeTable >< Net -> Bool
-     noStopSkip(tt, n) is (all p : Plan :- p isin rng(tt) =>
-					recStopSkip(si(hd(p)), tl(p), n)),
+     noSkipStop: TimeTable >< Net -> Bool
+     noSkipStop(tt, n) is (all p : Plan :- p isin rng(tt) =>
+					if p = emptyPlan then true
+					else
+						recStopSkip(si(hd(p)), tl(p), n)
+					end),
      
+
      recStopSkip: StopId >< Plan >< Net -> Bool
      recStopSkip(s1, p, n) is 
 				 if p = emptyPlan then 
 				    true
-				 elsif ~areDirectlyConnected(s1, si(hd(p)), n) then
+				 elsif ~(areDirectlyConnected(s1,
+				 si(hd(p)), n)) then
 				    false
 				 else
 				    recStopSkip(si(hd(p)), tl(p), n)
@@ -164,8 +157,8 @@ class
 		      correctTimingAtStop(tt, n) /\ 
 		      capacityAtStop(tt, n) /\
 		      capacityAtConnection(tt, n) /\ 
-		      overlappingDirection(tt, n) /\
-		      noStopSkip(tt, n) /\ 
+		      ~overlappingDirection(tt, n) /\
+		      noSkipStop(tt, n) /\ 
 		      correctDrivingTime(tt, n)		 
      
 end  

@@ -5,26 +5,38 @@ class
   value 
     s1 : Stop = mk_Stop("a", 1, 1),
     s2 : Stop = mk_Stop("b", 1, 1),   
-    s3 : Stop = mk_Stop("a", 2, 1)
+    s3_inv_same_s1 : Stop = mk_Stop("a", 2, 1)
   test_case
-    /* inserts stop in empty net */
-    [t001] insertStop("a", 1, 1, ({}, {})) = ({s1}, {}),
-    /* inserts same name, with different times */
-    [t002] insertStop("a", 1, 2, ({s1}, {})) = ({s1}, {}),
-    /* inserts new stop  */
-    [t003] insertStop("b", 1, 1, ({s1}, {})) = ({s1, s2}, {}),
+
+    -- insertStop
+    -- adding if stopId is "" or capacitiy is 0? (not sure)
+    [t_insert_new_stop_valid] insertStop("b", 1, 1, mk_Net({s1}, {})) = mk_Net({s1, s2}, {}),
+    [t_insert_stop_empty_net] insertStop("a", 1, 1, mk_Net({}, {})) = mk_Net({s1}, {}),
+    [t_insert_stop_with_same_name] insertStop("a", 1, 2, mk_Net({s1}, {})) = mk_Net({s1}, {}),
+
+    -- addConnection
+    -- adding if capacitiy is 0? (not sure)
+    [t_valid_add_connection] addConnection("a", "b", 3, 3, mk_Net({s1, s2}, {})) = mk_Net({s1, s2},
+                                                                                          {mk_Connection("a", "b", 3, 3)}),
+
+    [t_add_nonexisted_stopId_to_connection] addConnection("a", "b", 3, 3, mk_Net({s1}, {})) = mk_Net({s1}, {}),
+
+    [t_add_same_stopId_connection] addConnection("a", "a", 3, 3, mk_Net({s1}, {})) = mk_Net({s1}, {}),
+
+    [t_add_flipped_stopIds] addConnection("b", "a", 3, 3, mk_Net({s1, s2}, {mk_Connection("a", "b", 3, 3)})) = 
+                                                                                    mk_Net({s1}, {mk_Connection("a", "b", 3, 3)}),
+
+    -- isIn
+    -- isIn : StopId >< Net -> Bool
+    [t_isin_valid] isIn("a", mk_Net({s1}, {})) = true,
+    [t_isin_valid_nonempty] isIn("b", mk_Net({s1, s2}, {})) = true,
+    [t_isin_empty] isIn("a", mk_Net({}, {})) = false,
+    [t_isin_nonempty_b_not_in_stops] isIn("a", mk_Net({s2}, {})) = false
 
 
-    [t01] capacity("b", ({s1, s2}, {})) = 1
 
-    -- /* isin empty network  */
-    -- [t101] isIn(s1, ({}, {})) = false,
-    -- /* isin different net stop  */
-    -- [t102] isIn(s1, ({s2}, {})) = false,
-    -- /* isin different times  */
-    -- [t103] isIn(s1, ({s3}, {})) = false,
-    -- /* isin valid   */
-    -- [t104] isIn(s1, ({s1}, {})) = false
+
+
 
 
     end

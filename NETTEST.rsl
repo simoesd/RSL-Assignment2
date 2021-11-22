@@ -5,13 +5,19 @@ class
   value 
     s1 : Stop = mk_Stop("a", 1, 1),
     s2 : Stop = mk_Stop("b", 1, 1),   
+    s3 : Stop = mk_Stop("c", 1, 1),   
     s3_inv_same_s1 : Stop = mk_Stop("a", 2, 1),
 
 
     c1 : Connection = mk_Connection(sId(s1), sId(s2), 2, 3),
+    c2 : Connection = mk_Connection(sId(s2), sId(s1), 3, 3),
+    c3 : Connection = mk_Connection(sId(s1), sId(s3), 2, 2),
 
     n_no_connections : Net = mk_Net({s1,s2},{}),
-    n1 : Net = mk_Net({s1,s2},{c1})
+    n1 : Net = mk_Net({s1,s2},{c1}),
+    n2 : Net = mk_Net({s1, s2, s3},{c1,c3}),
+
+    n_connected_both_ways : Net = mk_Net({s1,s2},{c1, c2})
 
   test_case
 
@@ -23,19 +29,14 @@ class
 
     -- addConnection
     -- adding if capacitiy is 0? (not sure)
+    
     [t_valid_add_connection] 
-    /* addConnection("a", "b", 3, 3, mk_Net({s1, */
-    /* s2}, {})) = mk_Net({s1, s2}, {mk_Connection("a", "b", 3, 3)}), */
-
     addConnection(sId(s1),sId(s2), 2, 3, n_no_connections) = n1,
 
     [t_add_nonexisted_stopId_to_connection] addConnection("a", "b", 3, 3, mk_Net({s1}, {})) = mk_Net({s1}, {}),
 
     [t_add_same_stopId_connection] addConnection("a", "a", 3, 3, mk_Net({s1}, {})) = mk_Net({s1}, {}),
 
-    /* [t_add_flipped_stopIds] addConnection("b", "a", 3, 3, mk_Net({s1, */
-    /* s2}, {mk_Connection("a", "b", 3, 3)})) = mk_Net({s1, s2}, */
-    /* {mk_Connection("a", "b", 3, 3)}), */
 
     [t_add_flipped_stopIds] addConnection("b", "a", 2, 3,
     n1) = n1,
@@ -46,10 +47,21 @@ class
     [t_isin_valid] isIn("a", mk_Net({s1}, {})) = true,
     [t_isin_valid_nonempty] isIn("b", mk_Net({s1, s2}, {})) = true,
     [t_isin_empty] isIn("a", mk_Net({}, {})) = false,
-    [t_isin_nonempty_b_not_in_stops] isIn("a", mk_Net({s2}, {})) = false
+    [t_isin_nonempty_b_not_in_stops] isIn("a", mk_Net({s2}, {})) =
+    false,
+
+    [t_connected_both_ways1]
+    connectedBothWays(s1, s2, connections(n_connected_both_ways)) = true,
+
+    [t_connected_both_ways2]
+    connectedBothWays(s1, s2, connections(n2)) = false,
 
 
+    [t_is_wellformed_valid]
+    isWellformed(n2) = true,
 
+    [t_is_wellformed_connected_both_ways]
+    isWellformed(n_connected_both_ways) = false
 
 
 

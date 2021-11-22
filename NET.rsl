@@ -1,23 +1,16 @@
 scheme NET =
 class
   type 
- --  Net = Stop-set >< Connection-set,
 
    Net :: 
     stops: Stop-set
     connections: Connection-set,
-
-
-  --  Stop = StopId >< Capacity >< WaitingTime,
-
 
    Stop ::
     sId: StopId
     c: Capacity
     wt: WaitingTime,
 
-
-   /* Connection = StopId >< StopId >< Capacity >< DrivingTime, */
 
    Connection ::
     id1: StopId
@@ -34,8 +27,8 @@ class
   value /* generators */
     empty :  Net = mk_Net({},{}),
 
-    -- insert a stop with a given name, capacity and minimum waiting time
-    insertStop : StopId >< Capacity >< WaitingTime >< Net -> Net
+-- insert a stop with a given name, capacity and minimum waiting time
+   insertStop : StopId >< Capacity >< WaitingTime >< Net -> Net
     insertStop(id, c, wt, n) is
       if stops(n) = {} then mk_Net(stops(n) union {mk_Stop(id, c, wt)},
         connections(n))
@@ -44,8 +37,8 @@ class
       end,
 
 
-  --  add a connection between given stops, 
-  --  with a given capacity and a given minimum driving time 
+--  add a connection between given stops, 
+--  with a given capacity and a given minimum driving time 
    addConnection : StopId >< StopId >< Capacity >< DrivingTime >< Net -> Net 
    addConnection(sId1, sId2, c, dt, n) is
     if stops(n) = {} \/ sId1 = sId2 then n 
@@ -56,13 +49,13 @@ class
 
     
   value /* observers */
-   -- check whether a stop is in a network     
+-- check whether a stop is in a network     
     isIn : StopId >< Net -> Bool
     isIn(stopId, n) is 
       (exists s : Stop :- s isin stops(n) /\ (sId(s) = stopId)),
 
 
-   -- check whether two stops are directly connected in a network        
+-- check whether two stops are directly connected in a network        
     areDirectlyConnected : StopId >< StopId >< Net -> Bool
     areDirectlyConnected(sId1, sId2, n) is 
     (~(connections(n) = {}) /\
@@ -72,7 +65,7 @@ class
       (sId1 = id2(c) /\ sId2 = id1(c)))
     )),
 
---    -- get the capacity of a stop 
+-- get the capacity of a stop 
     capacity : StopId >< Net -~-> Capacity
     capacity(stopId, n) is 
       if isIn(stopId, n) then c(stopsRecursive(stopId, stops(n))) 
@@ -87,7 +80,7 @@ class
     end,
     
 
-   -- get the minimum waiting time of a stop 
+-- get the minimum waiting time of a stop 
    minWaitingTime : StopId >< Net -~-> WaitingTime
    minWaitingTime(stopId, n) is 
     if isIn(stopId, n) then wt(stopsRecursive(stopId, stops(n))) 
@@ -97,7 +90,7 @@ class
     --  recursive stop traversal method
     stopsConnRecursive : StopId >< StopId >< Connection-set -> Connection
     stopsConnRecursive(sId1, sId2, connections) is
-    -- Find better way if no connection is found (i.e. mk_Connection())
+-- Find better way if no connection is found (i.e. mk_Connection())
       if connections = {} then mk_Connection("","",0,0)
       elsif (id1(hd(connections)) = sId1 /\ id2(hd(connections)) = sId2) \/ 
             (id1(hd(connections)) = sId2 /\ id2(hd(connections)) = sId1)
@@ -119,7 +112,7 @@ class
     end,
 
 
---    -- get minimum driving time between two connected stops        
+-- get minimum driving time between two connected stops        
    minDrivingTime : StopId >< StopId >< Net -~-> DrivingTime
    minDrivingTime(sId1, sId2, n) is 
     if isInConn(sId1, sId2, n) then dt(stopsConnRecursive(sId1, sId2,
@@ -130,9 +123,10 @@ class
 
   connectedBothWays : Stop >< Stop >< Connection-set -> Bool
   connectedBothWays(stop1, stop2, connections) is
-    (
+  -- The "double negation" since exists cannot be translated to sml
+    ~(
      all c1 : Connection :- c1 isin connections => (
-     all c2 : Connection :- c2 isin connections  => (
+     all c2 : Connection :- c2 isin connections  => ~(
       id1(c1) = sId(stop1) /\  id2(c1) = sId(stop2) /\ 
       id1(c2) = sId(stop2) /\ id2(c2) = sId(stop1)
     ))),
@@ -141,6 +135,8 @@ class
 
   - at most one track connecting two stops.
     - NOT A->B and B->A 
+  - All stopIds in connections appear in stops
+  - All stops appear in connections
   - Check that all stops and connections have valid values
 
 */

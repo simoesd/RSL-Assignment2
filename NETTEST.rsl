@@ -115,6 +115,8 @@ class
     [t_isInConn_invalid_a_non_existing]
     isInConn("a", "h", n_valid_connected) = false,
 
+    [t_isInConn_a_a]
+    isInConn("a", "a", n_valid_connected) = false,
 
 
     -- capacity : StopId >< StopId >< Net -~-> Capacity
@@ -130,6 +132,9 @@ class
     [t_capacity_a_non_existent]
     capacity("a", "h", n_valid_connected) = 0,
 
+    [t_capacity_a_a]
+    capacity("a", "a", n_valid_connected) = 0,
+
 
     -- capacity : StopId >< StopId >< Net -~-> Capacity
     [t_valid_minDrivingTime_a_b]
@@ -144,6 +149,8 @@ class
     [t_minDrivingTime_a_non_existent]
     minDrivingTime("a", "h", n_valid_connected) = 0,
 
+    [t_minDrivingTime_a_a]
+    capacity("a", "a", n_valid_connected) = 0,
 
 
     -- connectedBothWays : Stop >< Stop >< Connection-set -> Bool

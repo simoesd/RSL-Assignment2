@@ -98,6 +98,7 @@ class
       else stopsConnRecursive(sId1, sId2, connections \ {hd(connections)})
     end,
 
+    
     isInConn : StopId >< StopId >< Net -> Bool
     isInConn(sId1, sId2, n) is 
       (exists c : Connection :- c isin connections(n) /\ (((id1(c) = sId1) 

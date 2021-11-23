@@ -85,9 +85,68 @@ class
 
 
     --capacity : StopId >< Net -~-> Capacity
+    [valid_capacity_a]
+    capacity("a", n_valid_connected) = 1,
+
+    [valid_capacity_c]
+    capacity("c", n_valid_connected) = 1,
+
+    [capacity_non_existent]
+    capacity("h", n_valid_connected) = 0,
+
+    -- minWaitingTime : StopId >< Net -~-> WaitingTime
+    [valid_minWaitingTime_a]
+    minWaitingTime("a", n_valid_connected) = 1,
+
+    [valid_minWaitingTime_c]
+    minWaitingTime("c", n_valid_connected) = 1,
+
+    [minWaitingTime_non_existent]
+    minWaitingTime("h", n_valid_connected) = 0,
+
+
+    -- isInConn : StopId >< StopId >< Net -> Bool
+    [t_isInConn_valid]
+    isInConn("a", "b", n_valid_connected) = true,
+
+    [t_isInConn_valid_reverse]
+    isInConn("b", "a", n_valid_connected) = true,
+
+    [t_isInConn_invalid_a_non_existing]
+    isInConn("a", "h", n_valid_connected) = false,
 
 
 
+    -- capacity : StopId >< StopId >< Net -~-> Capacity
+    [t_valid_capacity_a_b]
+    capacity("a", "b", n_valid_connected) = 2,
+
+    [t_valid_capacity_b_a]
+    capacity("b", "a", n_valid_connected) = 2,
+
+    [t_valid_capacity_b_c]
+    capacity("b", "c", n_valid_connected) = 2,
+
+    [t_capacity_a_non_existent]
+    capacity("a", "h", n_valid_connected) = 0,
+
+
+    -- capacity : StopId >< StopId >< Net -~-> Capacity
+    [t_valid_minDrivingTime_a_b]
+    minDrivingTime("a", "b", n_valid_connected) = 3,
+
+    [t_valid_minDrivingTime_b_a]
+    minDrivingTime("b", "a", n_valid_connected) = 3,
+
+    [t_valid_minDrivingTime_b_c]
+    minDrivingTime("b", "c", n_valid_connected) = 2,
+
+    [t_minDrivingTime_a_non_existent]
+    minDrivingTime("a", "h", n_valid_connected) = 0,
+
+
+
+    -- connectedBothWays : Stop >< Stop >< Connection-set -> Bool
 
     [t_connected_both_ways1]
     connectedBothWays(s1, s2, connections(n_connected_both_ways)) = true,
@@ -95,7 +154,7 @@ class
     [t_connected_both_ways2]
     connectedBothWays(s1, s2, connections(n2)) = false,
 
-
+    -- isWellformed : Net -> Bool
     [t_is_wellformed_valid]
     isWellformed(n2) = true,
 

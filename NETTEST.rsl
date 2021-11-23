@@ -12,20 +12,28 @@ class
     c1 : Connection = mk_Connection(sId(s1), sId(s2), 2, 3),
     c2 : Connection = mk_Connection(sId(s2), sId(s1), 3, 3),
     c3 : Connection = mk_Connection(sId(s1), sId(s3), 2, 2),
+    c4 : Connection = mk_Connection(sId(s2), sId(s3), 2, 2),
 
     n_no_connections : Net = mk_Net({s1,s2},{}),
     n1 : Net = mk_Net({s1,s2},{c1}),
     n2 : Net = mk_Net({s1, s2, s3},{c1,c3}),
 
-    n_connected_both_ways : Net = mk_Net({s1,s2},{c1, c2})
+    n_connected_both_ways : Net = mk_Net({s1,s2},{c1, c2}),
+
+    n_valid_connected : Net = mk_Net({s1, s2, s3},{c1, c4})
 
   test_case
 
     -- insertStop
     -- adding if stopId is "" or capacitiy is 0? (not sure)
-    [t_insert_new_stop_valid] insertStop("b", 1, 1, mk_Net({s1}, {})) = mk_Net({s1, s2}, {}),
-    [t_insert_stop_empty_net] insertStop("a", 1, 1, mk_Net({}, {})) = mk_Net({s1}, {}),
-    [t_insert_stop_with_same_name] insertStop("a", 1, 2, mk_Net({s1}, {})) = mk_Net({s1}, {}),
+    [t_insert_new_stop_valid] 
+    insertStop("b", 1, 1, mk_Net({s1}, {})) = mk_Net({s1, s2}, {}),
+
+    [t_insert_stop_empty_net] 
+    insertStop("a", 1, 1, mk_Net({}, {})) = mk_Net({s1}, {}),
+
+    [t_insert_stop_with_same_name] 
+    insertStop("a", 1, 2, mk_Net({s1}, {})) = mk_Net({s1}, {}),
 
     -- addConnection
     -- adding if capacitiy is 0? (not sure)
@@ -33,22 +41,53 @@ class
     [t_valid_add_connection] 
     addConnection(sId(s1),sId(s2), 2, 3, n_no_connections) = n1,
 
-    [t_add_nonexisted_stopId_to_connection] addConnection("a", "b", 3, 3, mk_Net({s1}, {})) = mk_Net({s1}, {}),
+    [t_add_nonexisted_stopId_to_connection] 
+    addConnection("a", "b", 3, 3, mk_Net({s1}, {})) = mk_Net({s1}, {}),
 
-    [t_add_same_stopId_connection] addConnection("a", "a", 3, 3, mk_Net({s1}, {})) = mk_Net({s1}, {}),
+    [t_add_same_stopId_connection] 
+    addConnection("a", "a", 3, 3, mk_Net({s1}, {})) = mk_Net({s1}, {}),
 
 
-    [t_add_flipped_stopIds] addConnection("b", "a", 2, 3,
-    n1) = n1,
+    [t_add_flipped_stopIds] 
+    addConnection("b", "a", 2, 3, n1) = n1,
 
 
     -- isIn
     -- isIn : StopId >< Net -> Bool
-    [t_isin_valid] isIn("a", mk_Net({s1}, {})) = true,
-    [t_isin_valid_nonempty] isIn("b", mk_Net({s1, s2}, {})) = true,
-    [t_isin_empty] isIn("a", mk_Net({}, {})) = false,
-    [t_isin_nonempty_b_not_in_stops] isIn("a", mk_Net({s2}, {})) =
-    false,
+    [t_isin_valid] 
+    isIn("a", mk_Net({s1}, {})) = true,
+
+    [t_isin_valid_nonempty] 
+    isIn("b", mk_Net({s1, s2}, {})) = true,
+
+    [t_isin_empty] 
+    isIn("a", mk_Net({}, {})) = false,
+
+    [t_isin_nonempty_b_not_in_stops] 
+    isIn("a", mk_Net({s2}, {})) = false,
+
+
+    -- areDirectlyConnected : StopId >< StopId >< Net -> Bool
+    [t_are_directly_connected_a_to_b]
+    areDirectlyConnected("a", "b", n_valid_connected) = true,
+
+    [t_are_directly_connected_b_a]
+    areDirectlyConnected("b", "a", n_valid_connected) = true,
+
+    [t_are_directly_connected_a_to_b_to_c]
+    areDirectlyConnected("a", "c", n_valid_connected) = false,
+
+    [t_are_directly_connected_a_to_nonexistent]
+    areDirectlyConnected("a", "h", n_valid_connected) = false,
+    
+    [t_are_directly_connected_a_to_a]
+    areDirectlyConnected("a", "a", n_valid_connected) = false,
+
+
+    --capacity : StopId >< Net -~-> Capacity
+
+
+
 
     [t_connected_both_ways1]
     connectedBothWays(s1, s2, connections(n_connected_both_ways)) = true,

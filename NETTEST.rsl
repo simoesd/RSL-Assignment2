@@ -20,7 +20,9 @@ class
 
     n_connected_both_ways : Net = mk_Net({s1,s2},{c1, c2}),
 
-    n_valid_connected : Net = mk_Net({s1, s2, s3},{c1, c4})
+    n_valid_connected : Net = mk_Net({s1, s2, s3},{c1, c4}),
+
+    n_invalid_stop : Net = mk_Net({s1, s2},{c1, c4})
 
   test_case
 
@@ -161,6 +163,14 @@ class
     [t_connected_both_ways2]
     connectedBothWays(s1, s2, connections(n2)) = false,
 
+
+    [t_only_valid_stops1]
+    onlyValidStops(n_valid_connected) = true, 
+
+    [t_only_valid_stops2]
+    onlyValidStops(n_invalid_stop) = false, 
+
+
     -- isWellformed : Net -> Bool
     [t_is_wellformed_valid]
     isWellformed(n2) = true,
@@ -171,4 +181,4 @@ class
 
 
 
-    end
+   end

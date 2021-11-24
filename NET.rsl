@@ -132,20 +132,75 @@ class
       id1(c2) = sId(stop2) /\ id2(c2) = sId(stop1)
     ))),
 
-/* predicates to check nets
 
-  - at most one track connecting two stops.
-    - NOT A->B and B->A 
-  - All stopIds in connections appear in stops
-  - All stops appear in connections
-  - Check that all stops and connections have valid values
+    --  Check if stop is present in Net
+    stopExist : StopId >< Stop-set -> Bool
+    stopExist(stopId, stops) is 
+      if stops = {} then false 
+      elsif sId(hd(stops)) ~= stopId then stopExist(stopId, stops \ {hd(stops)}) 
+      else true 
+    end,
 
-*/
+    -- All connections are between valid stops
+    onlyValidStops : Net -> Bool
+    onlyValidStops(n) is 
+    (
+      all c : Connection :- c isin connections(n) => 
+        stopExist(id1(c), stops(n)) /\ stopExist(id2(c), stops(n))
+    ),
+
+    -- All stops are present in at least one connection
+    allStopsAreConnected : Net -> Bool
+    allStopsAreConnected(n) is
+    (all s : Stop :- s isin stops(n) => (
+      exists c : Connection :- c isin connections(n) 
+      /\ (id1(c) = sId(s) \/ id2(c) = sId(s)) 
+    )),
+
+
+    -- No double connections
+    doubleConnections : Net -> Bool
+    doubleConnections(n) is 
+      ~(all c1 : Connection :- c1 isin connections(n) => ~(
+        exists c2 : Connection :- c2 isin connections(n) /\ c1 ~=c2 /\
+        id1(c1) = id2(c2) /\ id2(c1) = id2(c2)
+      )),
+
+    -- Connections valid values
+     connectionsValidValues : Net -> Bool
+     connectionsValidValues(n) is 
+        (
+        all c : Connection :- c isin connections(n) => 
+          id1(c) ~= id2(c) /\ c(c) > 0 /\ dt(c) > 0
+        ),
+
+
+    -- Stops valid values
+     stopsValidValues : Net -> Bool
+     stopsValidValues(n) is 
+        (
+        all s : Stop :- s isin stops(n) => 
+          c(s) > 0 /\ wt(s) > 0
+        ),
+    
+
     isWellformed : Net -> Bool
     isWellformed(n) is
     -- No stops are connected both ways
     (
        all s1 : Stop :- s1 isin stops(n) => (
        all s2 : Stop :- s2 isin stops(n) => 
-        ~(connectedBothWays(s1, s2, connections(n)))))
+        ~(connectedBothWays(s1, s2, connections(n))))
+    ) 
+    -- All connections are between valid stops
+    /\ onlyValidStops(n)
+    -- All stops appear in at least one connection
+    /\ allStopsAreConnected(n)
+    /\ onlyValidStops(n)
+    -- Only one connection between two stops
+    /\ ~doubleConnections(n)
+    -- All conenctions have valid values
+    /\ connectionsValidValues(n)
+    -- All stops have valid values
+    /\ stopsValidValues(n)
 end  

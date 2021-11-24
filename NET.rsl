@@ -59,8 +59,8 @@ class
     areDirectlyConnected : StopId >< StopId >< Net -> Bool
     areDirectlyConnected(sId1, sId2, n) is 
     (~(connections(n) = {}) /\
-    (
-     all c : Connection :- c isin connections(n) => (
+    ~(
+     all c : Connection :- c isin connections(n) => ~(
       (sId1 = id1(c) /\ sId2 = id2(c)) \/
       (sId1 = id2(c) /\ sId2 = id1(c)))
     )),

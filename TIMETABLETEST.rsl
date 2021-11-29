@@ -18,7 +18,7 @@ scheme TIMETABLETEST =
       connectionAB : Connection = mk_Connection("A", "B", 1, 10),
       connectionBC : Connection = mk_Connection("B", "C", 2, 12),
       connectionBD : Connection = mk_Connection("B", "D", 3, 7),
-      net : Net = ({stopA, stopB, stopC, stopD}, {connectionAB,
+      net : Net = mk_Net({stopA, stopB, stopC, stopD}, {connectionAB,
       connectionBC, connectionBD}),
 
       ttNoWaitingTime : TimeTable = addStop(t1, "B", 0, 1, addTram(t1,

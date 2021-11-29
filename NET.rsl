@@ -146,7 +146,8 @@ class
     onlyValidStops(n) is 
     (
       all c : Connection :- c isin connections(n) => 
-        stopExist(id1(c), stops(n)) /\ stopExist(id2(c), stops(n))
+        /* stopExist(id1(c), stops(n)) /\ stopExist(id2(c), stops(n)) */
+        isIn(id1(c), n) /\ isIn(id2(c), n)
     ),
 
     -- All stops are present in at least one connection
@@ -163,7 +164,7 @@ class
     doubleConnections(n) is 
       ~(all c1 : Connection :- c1 isin connections(n) => ~(
         exists c2 : Connection :- c2 isin connections(n) /\ c1 ~=c2 /\
-        id1(c1) = id2(c2) /\ id2(c1) = id2(c2)
+        id1(c1) = id1(c2) /\ id2(c1) = id2(c2)
       )),
 
     -- Connections valid values
@@ -182,6 +183,16 @@ class
         all s : Stop :- s isin stops(n) => 
           c(s) > 0 /\ wt(s) > 0
         ),
+
+    -- No duplicate stop ids
+    noDupliateStopIds : Net -> Bool
+    noDupliateStopIds(n) is
+    (all s1 : Stop :- s1 isin stops(n) =>
+      ~(
+      exists s2 : Stop :- s2 isin stops(n) /\ s1 ~= s2 
+      /\ sId(s1) = sId(s2)
+      )
+    ),
     
 
     isWellformed : Net -> Bool
@@ -203,4 +214,6 @@ class
     /\ connectionsValidValues(n)
     -- All stops have valid values
     /\ stopsValidValues(n)
+    -- No stops appear more than once
+    /\ noDupliateStopIds(n)
 end  

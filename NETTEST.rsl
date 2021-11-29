@@ -6,13 +6,24 @@ class
     s1 : Stop = mk_Stop("a", 1, 1),
     s2 : Stop = mk_Stop("b", 1, 1),   
     s3 : Stop = mk_Stop("c", 1, 1),   
-    s3_inv_same_s1 : Stop = mk_Stop("a", 2, 1),
+    s_s1_duplicateId: Stop = mk_Stop("a", 2, 1),
+
+    s_invalid_capacity : Stop = mk_Stop("a", 0, 1),
+    s_invalid_wt : Stop = mk_Stop("a", 1, -1),
+
 
 
     c1 : Connection = mk_Connection(sId(s1), sId(s2), 2, 3),
     c2 : Connection = mk_Connection(sId(s2), sId(s1), 3, 3),
     c3 : Connection = mk_Connection(sId(s1), sId(s3), 2, 2),
     c4 : Connection = mk_Connection(sId(s2), sId(s3), 2, 2),
+    -- c5 = c1 with different capacitiy
+    c5 : Connection = mk_Connection(sId(s1), sId(s2), 3, 3),
+    
+    c_invalid_capacity : Connection = mk_Connection(sId(s1), sId(s2), -1, 2),
+
+    c_invalid_driving_time : Connection = mk_Connection(sId(s1), sId(s2), 2, 0),
+
 
     n_no_connections : Net = mk_Net({s1,s2},{}),
     n1 : Net = mk_Net({s1,s2},{c1}),
@@ -22,7 +33,40 @@ class
 
     n_valid_connected : Net = mk_Net({s1, s2, s3},{c1, c4}),
 
-    n_invalid_stop : Net = mk_Net({s1, s2},{c1, c4})
+    n_invalid_stop : Net = mk_Net({s1, s2},{c1, c4}),
+
+    n_double_connection : Net = mk_Net({s1, s2},{c1, c5}),
+
+    n_stop_without_connection : Net = mk_Net({s1, s2, s3},{c1}),
+    
+    n_invalid_connection_capacity : Net = mk_Net({s1,
+    s2},{c_invalid_capacity}),
+
+    n_invalid_connection_driving_time : Net = mk_Net({s1,
+    s2},{c_invalid_driving_time, c1}), 
+
+    n_invalid_stop_capacity : Net = mk_Net({s2,
+    s_invalid_capacity},{c1}),
+
+    n_invalid_stop_waiting_time : Net = mk_Net({s2, s_invalid_wt},
+    {c1}),
+
+    n_duplicate_stopId : Net = mk_Net({s1, s2, s3,
+    s_s1_duplicateId},{c1, c3}),
+
+    -- Net from assignment
+
+    sA : Stop = mk_Stop("A", 2, 1),
+    sB : Stop = mk_Stop("B", 3, 2),
+    sC : Stop = mk_Stop("C", 2, 1),
+    sD : Stop = mk_Stop("D", 2, 1),
+
+    cAB : Connection = mk_Connection("A", "B", 1, 10),
+    cBC : Connection = mk_Connection("B", "C", 2, 12),
+    cBD : Connection = mk_Connection("B", "D", 7, 3),
+
+    N : Net = mk_Net({sA, sB, sC, sD},{cAB, cBC, cBD})
+
 
   test_case
 
@@ -171,14 +215,55 @@ class
     onlyValidStops(n_invalid_stop) = false, 
 
 
-    -- isWellformed : Net -> Bool
+    [t_all_stops_are_connected_t]
+    allStopsAreConnected(n_valid_connected) = true,
+
+    [t_all_stops_are_connected_f]
+    allStopsAreConnected(n_stop_without_connection) = false,
+
+    [t_double_connections_f]
+    doubleConnections(n_valid_connected) = false,
+
+    [t_double_connections_t]
+    doubleConnections(n_double_connection) = true,
+
+    [t_connections_valid_values_t]
+    connectionsValidValues(n_valid_connected) = true,
+
+    [t_connections_valid_values_f_c]
+    connectionsValidValues(n_invalid_connection_capacity) = false,
+
+    [t_connections_valid_values_f_dt]
+    connectionsValidValues(n_invalid_connection_driving_time) = false,
+
+    [t_stops_valid_values_t]
+    stopsValidValues(n_valid_connected) = true,
+
+    [t_stops_valid_values_f_c]
+    stopsValidValues(n_invalid_stop_capacity) = false,
+
+    [t_stops_valid_values_f_wt]
+    stopsValidValues(n_invalid_stop_waiting_time) = false,
+
+    [t_duplicate_stopIds_t]
+    noDupliateStopIds(n_valid_connected) = true,
+
+    [t_duplicate_stopIds_f]
+    noDupliateStopIds(n_duplicate_stopId) = false,
+
     [t_is_wellformed_valid]
     isWellformed(n2) = true,
 
-    [t_is_wellformed_connected_both_ways]
-    isWellformed(n_connected_both_ways) = false
+    [t_is_wellformed_f_1]
+    isWellformed(n_duplicate_stopId) = false,
 
+    [t_is_wellformed_f_2]
+    isWellformed(n_invalid_connection_capacity) = false,
 
+    [t_is_wellformed_f_3]
+    isWellformed(n_double_connection) = false,
 
+    [t_isWellformed_assignment]
+    isWellformed(N) = true
 
    end
